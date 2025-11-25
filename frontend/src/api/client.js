@@ -12,6 +12,8 @@ apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('sessionToken')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  } else {
+    console.warn('No session token found in localStorage')
   }
   return config
 })

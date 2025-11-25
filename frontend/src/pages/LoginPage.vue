@@ -43,6 +43,15 @@
       </form>
       
       <p v-if="error" class="mt-4 text-sm text-red-600">{{ error }}</p>
+      
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600">
+          Don't have an account?
+          <router-link to="/register" class="text-blue-600 hover:text-blue-700 font-medium">
+            Register here
+          </router-link>
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -58,8 +67,8 @@ export default {
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()
-    const username = ref('')
-    const password = ref('')
+    const username = ref('vineysharmaui@outlook.com')
+    const password = ref('Active@2020')
     const loading = ref(false)
     const error = ref('')
 
@@ -73,7 +82,15 @@ export default {
           password: password.value
         })
         
-        const { token, user } = response.data
+        // Handle both 'token' and 'access_token' from response
+        const token = response.data.token || response.data.access_token
+        const user = response.data.user
+        
+        if (!token) {
+          error.value = 'No token received from server'
+          return
+        }
+        
         authStore.login(token, user)
         localStorage.setItem('sessionToken', token)
         
