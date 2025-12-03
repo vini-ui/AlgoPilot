@@ -36,9 +36,11 @@ class AppSecret(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     app_id = Column(Integer, ForeignKey("apps.id"), nullable=False, unique=True)
-    secret_key = Column(Text, nullable=False)  # encrypted
-    api_key = Column(Text, nullable=False)  # encrypted
-    refresh_token = Column(Text)  # encrypted
+    secret_key = Column(Text, nullable=False)  # encrypted - API Secret Key
+    api_key = Column(Text, nullable=False)  # encrypted - API Key
+    mpin = Column(Text, nullable=False)  # encrypted - Angel One MPIN (Mobile Personal Identification Number)
+    base_url = Column(String, default="https://apiconnect.angelbroking.com")  # SmartAPI base URL
+    refresh_token = Column(Text)  # encrypted - Session refresh token
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     app = relationship("App", back_populates="secrets")

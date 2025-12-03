@@ -1,0 +1,1912 @@
+{
+	"info": {
+		"_postman_id": "db52a3be-8f5a-42c4-a9fa-26b0b6076a30",
+		"name": "AlgoPilot API Collection",
+		"description": "Complete collection of AlgoPilot Backend APIs and Angel One SmartAPI endpoints for trading automation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4866674"
+	},
+	"item": [
+		{
+			"name": "AlgoPilot Backend APIs",
+			"item": [
+				{
+					"name": "Authentication",
+					"item": [
+						{
+							"name": "Register User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200 || pm.response.code === 201) {",
+											"    var jsonData = pm.response.json();",
+											"    pm.environment.set(\"user_id\", jsonData.user_id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpass123\"\n}"
+								},
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/register",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"register"
+									]
+								},
+								"description": "Register a new user account"
+							},
+							"response": []
+						},
+						{
+							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.access_token) {",
+											"        pm.environment.set(\"algopilot_token\", jsonData.access_token);",
+											"        pm.environment.set(\"user_id\", jsonData.user.id);",
+											"        pm.environment.set(\"username\", jsonData.user.username);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpass123\"\n}"
+								},
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/login",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"login"
+									]
+								},
+								"description": "Login and get access token"
+							},
+							"response": []
+						}
+					],
+					"description": "User authentication endpoints"
+				},
+				{
+					"name": "Apps",
+					"item": [
+						{
+							"name": "List Apps",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/apps",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"apps"
+									]
+								},
+								"description": "Get all apps for the current user"
+							},
+							"response": []
+						},
+						{
+							"name": "Create App",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200 || pm.response.code === 201) {",
+											"    var jsonData = pm.response.json();",
+											"    pm.environment.set(\"app_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"My Trading Account\",\n    \"account_id\": \"V50055868\",\n    \"api_key\": \"YOUR_API_KEY\",\n    \"secret_key\": \"YOUR_SECRET_KEY\",\n    \"mpin\": \"1234\",\n    \"base_url\": \"https://apiconnect.angelbroking.com\",\n    \"is_default\": false\n}"
+								},
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/apps",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"apps"
+									]
+								},
+								"description": "Create a new trading app"
+							},
+							"response": []
+						},
+						{
+							"name": "Update App",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Updated Trading Account\",\n    \"account_id\": \"V50055868\",\n    \"api_key\": \"YOUR_API_KEY\",\n    \"secret_key\": \"YOUR_SECRET_KEY\",\n    \"mpin\": \"1234\",\n    \"base_url\": \"https://apiconnect.angelbroking.com\",\n    \"is_default\": false\n}"
+								},
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/apps/{{app_id}}",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"apps",
+										"{{app_id}}"
+									]
+								},
+								"description": "Update an existing app"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete App",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/apps/{{app_id}}",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"apps",
+										"{{app_id}}"
+									]
+								},
+								"description": "Delete an app"
+							},
+							"response": []
+						},
+						{
+							"name": "Switch App",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.session) {",
+											"        pm.environment.set(\"access_token\", jsonData.session.access_token);",
+											"        pm.environment.set(\"feed_token\", jsonData.session.feed_token);",
+											"        pm.environment.set(\"token_expiry\", jsonData.session.token_expiry);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"totp\": \"123456\"\n}"
+								},
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/apps/{{app_id}}/switch",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"apps",
+										"{{app_id}}",
+										"switch"
+									]
+								},
+								"description": "Switch to an app and activate session. Requires TOTP for authentication."
+							},
+							"response": []
+						},
+						{
+							"name": "Set Default App",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/apps/{{app_id}}/set-default",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"apps",
+										"{{app_id}}",
+										"set-default"
+									]
+								},
+								"description": "Set an app as default"
+							},
+							"response": []
+						}
+					],
+					"description": "Trading app management endpoints"
+				},
+				{
+					"name": "Strategies",
+					"item": [
+						{
+							"name": "List Strategies",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies"
+									]
+								},
+								"description": "Get all strategies for the active app"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Strategy",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies/{{strategy_id}}",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies",
+										"{{strategy_id}}"
+									]
+								},
+								"description": "Get a specific strategy by ID"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Strategy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200 || pm.response.code === 201) {",
+											"    var jsonData = pm.response.json();",
+											"    pm.environment.set(\"strategy_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"My Strategy\",\n    \"type\": \"momentum\",\n    \"params_json\": \"{\\\"symbol\\\": \\\"NIFTY\\\", \\\"quantity\\\": 50}\",\n    \"enabled\": false\n}"
+								},
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies"
+									]
+								},
+								"description": "Create a new trading strategy"
+							},
+							"response": []
+						},
+						{
+							"name": "Start Strategy",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies/{{strategy_id}}/start",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies",
+										"{{strategy_id}}",
+										"start"
+									]
+								},
+								"description": "Start a strategy"
+							},
+							"response": []
+						},
+						{
+							"name": "Stop Strategy",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies/{{strategy_id}}/stop",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies",
+										"{{strategy_id}}",
+										"stop"
+									]
+								},
+								"description": "Stop a strategy"
+							},
+							"response": []
+						},
+						{
+							"name": "Pause Strategy",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies/{{strategy_id}}/pause",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies",
+										"{{strategy_id}}",
+										"pause"
+									]
+								},
+								"description": "Pause a strategy"
+							},
+							"response": []
+						},
+						{
+							"name": "Run Strategy Now",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies/{{strategy_id}}/run-now",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies",
+										"{{strategy_id}}",
+										"run-now"
+									]
+								},
+								"description": "Execute a strategy immediately (single run)"
+							},
+							"response": []
+						},
+						{
+							"name": "Start All Strategies",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies/start-all",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies",
+										"start-all"
+									]
+								},
+								"description": "Start all enabled strategies"
+							},
+							"response": []
+						},
+						{
+							"name": "Stop All Strategies",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies/stop-all",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies",
+										"stop-all"
+									]
+								},
+								"description": "Stop all running strategies"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Strategy",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/strategies/{{strategy_id}}",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"strategies",
+										"{{strategy_id}}"
+									]
+								},
+								"description": "Delete a strategy"
+							},
+							"response": []
+						}
+					],
+					"description": "Trading strategy management endpoints"
+				},
+				{
+					"name": "Orders",
+					"item": [
+						{
+							"name": "List Orders",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/orders",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"orders"
+									]
+								},
+								"description": "Get all orders for the active app (last 100)"
+							},
+							"response": []
+						}
+					],
+					"description": "Order history endpoints"
+				},
+				{
+					"name": "Settings",
+					"item": [
+						{
+							"name": "Get Settings",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/settings",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"settings"
+									]
+								},
+								"description": "Get global application settings"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Settings",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{algopilot_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"paper_mode\": false,\n    \"default_lot_size\": 1\n}"
+								},
+								"url": {
+									"raw": "{{algopilot_base_url}}/api/settings",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"api",
+										"settings"
+									]
+								},
+								"description": "Update global application settings"
+							},
+							"response": []
+						}
+					],
+					"description": "Application settings endpoints"
+				},
+				{
+					"name": "Health & Info",
+					"item": [
+						{
+							"name": "Root",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{algopilot_base_url}}/",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										""
+									]
+								},
+								"description": "Get API information"
+							},
+							"response": []
+						},
+						{
+							"name": "Health Check",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{algopilot_base_url}}/health",
+									"host": [
+										"{{algopilot_base_url}}"
+									],
+									"path": [
+										"health"
+									]
+								},
+								"description": "Health check endpoint"
+							},
+							"response": []
+						}
+					],
+					"description": "Health and information endpoints"
+				}
+			],
+			"description": "AlgoPilot Backend API endpoints"
+		},
+		{
+			"name": "Angel One SmartAPI",
+			"item": [
+				{
+					"name": "Authentication",
+			"item": [
+				{
+					"name": "Generate Session (Login by MPIN)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.status && jsonData.data) {",
+									"        pm.environment.set(\"access_token\", jsonData.data.jwtToken);",
+									"        pm.environment.set(\"refresh_token\", jsonData.data.refreshToken);",
+									"        pm.environment.set(\"feed_token\", jsonData.data.feedToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-ClientLocalIP",
+								"value": "192.168.1.1",
+								"disabled": true
+							},
+							{
+								"key": "X-ClientPublicIP",
+								"value": "192.168.1.1",
+								"disabled": true
+							},
+							{
+								"key": "X-MACAddress",
+								"value": "00:00:00:00:00:00"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"clientcode\": \"{{client_id}}\",\n    \"mpin\": \"{{mpin}}\",\n    \"totp\": \"{{totp}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rest/auth/angelbroking/user/v1/loginByMPIN",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"auth",
+								"angelbroking",
+								"user",
+								"v1",
+								"loginByMPIN"
+							]
+						},
+						"description": "Generate user session using Client ID, MPIN, and TOTP. Returns JWT token, refresh token, and feed token. Note: loginByPassword is no longer allowed - use MPIN instead."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Session (Login by Password)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.status && jsonData.data) {",
+									"        pm.environment.set(\"access_token\", jsonData.data.jwtToken);",
+									"        pm.environment.set(\"refresh_token\", jsonData.data.refreshToken);",
+									"        pm.environment.set(\"feed_token\", jsonData.data.feedToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-ClientLocalIP",
+								"value": "192.168.1.1",
+								"disabled": true
+							},
+							{
+								"key": "X-ClientPublicIP",
+								"value": "192.168.1.1",
+								"disabled": true
+							},
+							{
+								"key": "X-MACAddress",
+								"value": "00:00:00:00:00:00"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"clientcode\": \"{{client_id}}\",\n    \"password\": \"{{mpin}}\",\n    \"totp\": \"037752\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rest/auth/angelbroking/user/v1/loginByPassword",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"auth",
+								"angelbroking",
+								"user",
+								"v1",
+								"loginByPassword"
+							]
+						},
+						"description": "Generate user session using Client ID, MPIN, and TOTP. Returns JWT token, refresh token, and feed token. Note: loginByPassword is no longer allowed - use MPIN instead."
+					},
+					"response": [
+						{
+							"name": "Generate Session (Login by Password)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "X-UserType",
+										"value": "USER"
+									},
+									{
+										"key": "X-SourceID",
+										"value": "WEB"
+									},
+									{
+										"key": "X-ClientLocalIP",
+										"value": "192.168.1.1",
+										"disabled": true
+									},
+									{
+										"key": "X-ClientPublicIP",
+										"value": "192.168.1.1",
+										"disabled": true
+									},
+									{
+										"key": "X-MACAddress",
+										"value": "00:00:00:00:00:00"
+									},
+									{
+										"key": "X-PrivateKey",
+										"value": "{{api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"clientcode\": \"{{client_id}}\",\n    \"password\": \"{{mpin}}\",\n    \"totp\": \"037752\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/rest/auth/angelbroking/user/v1/loginByPassword",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"rest",
+										"auth",
+										"angelbroking",
+										"user",
+										"v1",
+										"loginByPassword"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 03 Dec 2025 03:08:06 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "POST, GET, OPTIONS"
+								},
+								{
+									"key": "Access-Control-Max-Age",
+									"value": "3600"
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Content-type,X-Requested-With,Origin,accept,Authorization,X-SourceID,X-ClientLocalIP,X-ClientPublicIP,X-MACaddress,X-PrivateKey,X-UserType,x-forwarded-for,X-Forwarded-For,x-request-id, X-ALGO-EXCH-ID, X-ALGO-ID, X-API-KEY, X-CLIENT-ID, X-VENDOR-CODE, X-VENDOR-EXCH-CODE, client-real-ip"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "false"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "SAMEORIGIN"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "strict-origin"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Content-Security-Policy",
+									"value": "default-src 'self'; frame-ancestors 'self' https://*.angelbroking.com; https://*.angelone.in;"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "TS0179ac75=0167ca9f9bd20357447eb6a57d9a28b9e2c33266d368c8a389aaf42a6281c85a5839b4758d84f0eaac012a62e4d712734efa5228bf; Path=/; Domain=.apiconnect.angelone.in"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"SUCCESS\",\n    \"errorcode\": \"\",\n    \"data\": {\n        \"jwtToken\": \"eyJhbGciOiJIUzUxMiJ9.eyJ1c2VybmFtZSI6IlY1MDA1NTg2OCIsInJvbGVzIjowLCJ1c2VydHlwZSI6IlVTRVIiLCJ0b2tlbiI6ImV5SmhiR2NpT2lKU1V6STFOaUlzSW5SNWNDSTZJa3BYVkNKOS5leUoxYzJWeVgzUjVjR1VpT2lKamJHbGxiblFpTENKMGIydGxibDkwZVhCbElqb2lkSEpoWkdWZllXTmpaWE56WDNSdmEyVnVJaXdpWjIxZmFXUWlPakV5TENKemIzVnlZMlVpT2lJeklpd2laR1YyYVdObFgybGtJam9pTTJWaFkyRTRNMk10WVRnMFppMHpNVFkzTFdJNFlqQXRNMk0zTkRFeVlXUXhZbVZqSWl3aWEybGtJam9pZEhKaFpHVmZhMlY1WDNZeUlpd2liMjF1WlcxaGJtRm5aWEpwWkNJNk1USXNJbkJ5YjJSMVkzUnpJanA3SW1SbGJXRjBJanA3SW5OMFlYUjFjeUk2SW1GamRHbDJaU0o5TENKdFppSTZleUp6ZEdGMGRYTWlPaUpoWTNScGRtVWlmU3dpYm1KMVRHVnVaR2x1WnlJNmV5SnpkR0YwZFhNaU9pSmhZM1JwZG1VaWZYMHNJbWx6Y3lJNkluUnlZV1JsWDJ4dloybHVYM05sY25acFkyVWlMQ0p6ZFdJaU9pSldOVEF3TlRVNE5qZ2lMQ0psZUhBaU9qRTNOalE0TVRjMk9EWXNJbTVpWmlJNk1UYzJORGN6TVRFd05pd2lhV0YwSWpveE56WTBOek14TVRBMkxDSnFkR2tpT2lKaU56Z3lPV1l5T1MwNU56azNMVFEzWTJRdFlqSXlaQzAwWlRoaE9UTmxZemczTURVaUxDSlViMnRsYmlJNklpSjkudDUwUTNhYU9hQjVWMnNZdjdHcTN5SF9yWHFLcFdNVHBiNlR6Rk9qdXhRdVpyUDNOVEFoTUlaZWx5RGhBQU9wWDFrcXVvYnBQaVNyV2l2cWRINEpMUFQ1NFNJUHN2YlRfcWEtakFvLU03MFk1cEllUHpRYTc0U3B1cFdaZ0RjSHVLUUIxXzZpT3MtUWxkbURpSVV3WVdlZ0NlUnVZVDB4VzlYdjVKWk1xT1dzIiwiQVBJLUtFWSI6IlFERGdYY2djIiwiWC1PTEQtQVBJLUtFWSI6dHJ1ZSwiaWF0IjoxNzY0NzMxMjg2LCJleHAiOjE3NjQ3ODY2MDB9.aUtdK9bArEswCqLZq5Kfafi47yeSFVwuNBRULRinMHrnp4OzErqvnMgVnrCcpzatIbTWNx4B-TgFcCn9ahPQ0A\",\n        \"refreshToken\": \"eyJhbGciOiJIUzUxMiJ9.eyJ0b2tlbiI6IlJFRlJFU0gtVE9LRU4iLCJSRUZSRVNILVRPS0VOIjoiZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDNSNWNHVWlPaUpqYkdsbGJuUWlMQ0owYjJ0bGJsOTBlWEJsSWpvaWRISmhaR1ZmY21WbWNtVnphRjkwYjJ0bGJpSXNJbWR0WDJsa0lqb3dMQ0p6YjNWeVkyVWlPaUl6SWl3aVpHVjJhV05sWDJsa0lqb2lNMlZoWTJFNE0yTXRZVGcwWmkwek1UWTNMV0k0WWpBdE0yTTNOREV5WVdReFltVmpJaXdpYTJsa0lqb2lkSEpoWkdWZmEyVjVYM1l5SWl3aWIyMXVaVzFoYm1GblpYSnBaQ0k2TUN3aWFYTnpJam9pYkc5bmFXNWZjMlZ5ZG1salpTSXNJbk4xWWlJNklsWTFNREExTlRnMk9DSXNJbVY0Y0NJNk1UYzJORGd4TnpZNE5pd2libUptSWpveE56WTBOek14TVRBMkxDSnBZWFFpT2pFM05qUTNNekV4TURZc0ltcDBhU0k2SWpVNFlqTTFZVFEyTFdFd1l6QXRORFU1WmkxaVlUZ3pMVFUwTURBM1lqTm1PV0kwTUNJc0lsUnZhMlZ1SWpvaUluMC5UcGJLS2hJNXR4WFl0eGhvTl9PM0FXRUY3M3hVOGQ2M3Z3cW9mTzZEYlFwTUlnNTRSUjEtM2x5MmZCdm1ieFFfY2VTMHhsTGZfaUNQZEpZaThlZ1Z6YnJObmZueTRneHVDVU1ad25xNHhfRW1WRGRkRWRoZnZPel9SZ0JWbDRGYTZNbWhTdXdPQ2phLTdqaWhBWDI0TlJONmVoNDVTcGRGd0JWa01hMlNiRjAiLCJpYXQiOjE3NjQ3MzEyODZ9.sk5DsnhB13rogwwK-m3VH4pVqWdmWY-rhB1L6omIesvGzcDQlKrRIlX7r1i318FMWevGruKBRnHYfBwcDbfaag\",\n        \"feedToken\": \"eyJhbGciOiJIUzUxMiJ9.eyJ1c2VybmFtZSI6IlY1MDA1NTg2OCIsImlhdCI6MTc2NDczMTI4NiwiZXhwIjoxNzY0ODE3Njg2fQ.EwFsHCrEVrjosIwmTXk8gM7w5VLYBzT7ESI9dbkCPZTvEurqiw6H2pFXiWZNJFuSpYM57M8j05_suhwajTsy3w\",\n        \"state\": null\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.status && jsonData.data) {",
+									"        pm.environment.set(\"access_token\", jsonData.data.jwtToken);",
+									"        pm.environment.set(\"feed_token\", jsonData.data.feedToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{refresh_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/auth/angelbroking/jwt/v1/generateTokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"auth",
+								"angelbroking",
+								"jwt",
+								"v1",
+								"generateTokens"
+							]
+						},
+						"description": "Refresh access token using refresh token. No TOTP required."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/user/v1/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"user",
+								"v1",
+								"logout"
+							]
+						},
+						"description": "Logout and invalidate current session."
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for SmartAPI"
+		},
+		{
+			"name": "User Profile",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/user/v1/getProfile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"user",
+								"v1",
+								"getProfile"
+							]
+						},
+						"description": "Get user profile information including client details, email, etc."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Place Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-ClientLocalIP",
+								"value": "192.168.1.1"
+							},
+							{
+								"key": "X-ClientPublicIP",
+								"value": "192.168.1.1"
+							},
+							{
+								"key": "X-MACAddress",
+								"value": "00:00:00:00:00:00"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"variety\": \"NORMAL\",\n    \"tradingsymbol\": \"NIFTY\",\n    \"symboltoken\": \"99926000\",\n    \"transactiontype\": \"BUY\",\n    \"exchange\": \"NFO\",\n    \"ordertype\": \"MARKET\",\n    \"producttype\": \"INTRADAY\",\n    \"duration\": \"DAY\",\n    \"price\": \"0\",\n    \"squareoff\": \"0\",\n    \"stoploss\": \"0\",\n    \"quantity\": \"50\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/order/v1/placeOrder",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"order",
+								"v1",
+								"placeOrder"
+							]
+						},
+						"description": "Place a new order. Order types: MARKET, LIMIT, STOPLOSS_LIMIT, etc."
+					},
+					"response": []
+				},
+				{
+					"name": "Modify Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"variety\": \"NORMAL\",\n    \"orderid\": \"{{order_id}}\",\n    \"ordertype\": \"LIMIT\",\n    \"producttype\": \"INTRADAY\",\n    \"duration\": \"DAY\",\n    \"price\": \"19500\",\n    \"quantity\": \"50\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/order/v1/modifyOrder",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"order",
+								"v1",
+								"modifyOrder"
+							]
+						},
+						"description": "Modify an existing order."
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"variety\": \"NORMAL\",\n    \"orderid\": \"{{order_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/order/v1/cancelOrder",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"order",
+								"v1",
+								"cancelOrder"
+							]
+						},
+						"description": "Cancel an existing order."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order Book",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/order/v1/getOrderBook",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"order",
+								"v1",
+								"getOrderBook"
+							]
+						},
+						"description": "Get all orders (pending, executed, cancelled)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Trade Book",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/order/v1/getTradeBook",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"order",
+								"v1",
+								"getTradeBook"
+							]
+						},
+						"description": "Get executed trades."
+					},
+					"response": []
+				}
+			],
+			"description": "Order management endpoints"
+		},
+		{
+			"name": "Portfolio",
+			"item": [
+				{
+					"name": "Get Positions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/portfolio/v1/getPosition",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"portfolio",
+								"v1",
+								"getPosition"
+							]
+						},
+						"description": "Get current positions (intraday positions)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Holdings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/portfolio/v1/getHolding",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"portfolio",
+								"v1",
+								"getHolding"
+							]
+						},
+						"description": "Get holdings (delivery positions)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Funds",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/user/v1/getRMS",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"user",
+								"v1",
+								"getRMS"
+							]
+						},
+						"description": "Get available funds and margin details."
+					},
+					"response": []
+				}
+			],
+			"description": "Portfolio and holdings endpoints"
+		},
+		{
+			"name": "Market Data",
+			"item": [
+				{
+					"name": "Get Historical Candle Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"exchange\": \"NSE\",\n    \"symboltoken\": \"3045\",\n    \"interval\": \"ONE_MINUTE\",\n    \"fromdate\": \"2024-01-01 09:15\",\n    \"todate\": \"2024-01-01 15:30\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/historical/v1/getCandleData",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"historical",
+								"v1",
+								"getCandleData"
+							]
+						},
+						"description": "Get historical OHLC candle data. Intervals: ONE_MINUTE, FIVE_MINUTE, etc."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Market Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/market/v1/getMarketStatus",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"market",
+								"v1",
+								"getMarketStatus"
+							]
+						},
+						"description": "Get market status (open/close)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quote",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mode\": \"FULL\",\n    \"exchangeTokens\": {\n        \"NSE\": [\"3045\", \"11536\"]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/market/v1/getQuote",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"market",
+								"v1",
+								"getQuote"
+							]
+						},
+						"description": "Get real-time quote for symbols."
+					},
+					"response": []
+				}
+			],
+			"description": "Market data endpoints"
+		},
+		{
+			"name": "Symbol Master",
+			"item": [
+				{
+					"name": "Get Symbol Master",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "X-UserType",
+								"value": "USER"
+							},
+							{
+								"key": "X-SourceID",
+								"value": "WEB"
+							},
+							{
+								"key": "X-PrivateKey",
+								"value": "{{api_key}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/secure/angelbroking/market/v1/getSymbolMaster",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"secure",
+								"angelbroking",
+								"market",
+								"v1",
+								"getSymbolMaster"
+							]
+						},
+						"description": "Get symbol master data for all exchanges. Large file, use for reference."
+					},
+					"response": []
+				}
+			]
+		}
+			],
+			"description": "Angel One SmartAPI endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "algopilot_base_url",
+			"value": "http://127.0.0.1:8000"
+		},
+		{
+			"key": "algopilot_token",
+			"value": ""
+		},
+		{
+			"key": "app_id",
+			"value": ""
+		},
+		{
+			"key": "strategy_id",
+			"value": ""
+		},
+		{
+			"key": "user_id",
+			"value": ""
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "base_url",
+			"value": "https://apiconnect.angelbroking.com"
+		},
+		{
+			"key": "api_key",
+			"value": "YOUR_API_KEY"
+		},
+		{
+			"key": "client_id",
+			"value": "YOUR_CLIENT_ID"
+		},
+		{
+			"key": "mpin",
+			"value": "YOUR_MPIN"
+		},
+		{
+			"key": "totp",
+			"value": "YOUR_TOTP"
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "refresh_token",
+			"value": ""
+		},
+		{
+			"key": "feed_token",
+			"value": ""
+		},
+		{
+			"key": "token_expiry",
+			"value": ""
+		},
+		{
+			"key": "order_id",
+			"value": ""
+		},
+		{
+			"key": "secret_key",
+			"value": ""
+		}
+	]
+}
