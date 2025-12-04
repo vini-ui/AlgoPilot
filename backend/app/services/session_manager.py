@@ -2,6 +2,7 @@
 Session Manager - Handles SmartAPI connections and per-app runtime sessions
 """
 from typing import Optional, Dict
+from datetime import datetime, timedelta
 from app.models import App, AppSecret
 from app.services.smartapi_client import SmartAPIClient
 
@@ -145,4 +146,62 @@ class SessionManager:
     def get_smartapi_client(self) -> Optional[SmartAPIClient]:
         """Get the active SmartAPI client instance."""
         return self._smartapi_client
+    
+    async def restore_session(self, app_id: int, app: App, secrets: AppSecret, session_data: Dict) -> bool:
+        """
+        Restore a session from stored session data.
+        
+        Args:
+            app_id: App ID
+            app: App model instance
+            secrets: AppSecret model instance
+            session_data: Stored session data with access_token, feed_token, etc.
+            
+        Returns:
+            True if session was restored successfully, False otherwise
+        """
+        try:
+            if not session_data or not session_data.get("access_token"):
+                return False
+            
+            # Create SmartAPI client
+            base_url = secrets.base_url or "https://apiconnect.angelbroking.com"
+            self._smartapi_client = SmartAPIClient(
+                api_key=secrets.api_key,
+                secret_key=secrets.secret_key,
+                client_id=app.account_id,
+                mpin=secrets.mpin,
+                base_url=base_url
+            )
+            
+            # Restore tokens from session data
+            self._smartapi_client.access_token = session_data.get("access_token")
+            self._smartapi_client.refresh_token = session_data.get("refresh_token")
+            self._smartapi_client.feed_token = session_data.get("feed_token")
+            
+            # Parse token expiry
+            if session_data.get("token_expiry"):
+                try:
+                    self._smartapi_client.token_expiry = datetime.fromisoformat(session_data["token_expiry"])
+                except:
+                    self._smartapi_client.token_expiry = datetime.now() + timedelta(hours=24)
+            
+            # Check if token is still valid
+            if not self._smartapi_client.is_token_valid():
+                # Try to refresh if we have refresh token
+                if self._smartapi_client.refresh_token:
+                    refresh_result = await self._smartapi_client.refresh_session()
+                    if not refresh_result.get("success"):
+                        return False
+                else:
+                    return False
+            
+            # Set active session
+            self._active_app_id = app_id
+            self._active_session = session_data
+            
+            return True
+        except Exception as e:
+            print(f"Error restoring session: {e}")
+            return False
 

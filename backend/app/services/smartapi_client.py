@@ -332,8 +332,8 @@ class SmartAPIClient:
             "Accept": "application/json",
             "X-UserType": "USER",
             "X-SourceID": "WEB",
-            "X-ClientLocalIP": "192.168.1.1",
-            "X-ClientPublicIP": "192.168.1.1",
+            "X-ClientLocalIP": self._get_local_ip(),
+            "X-ClientPublicIP": self._get_local_ip(),  # Will be updated in async methods
             "X-MACAddress": "00:00:00:00:00:00",
             "X-PrivateKey": self.api_key
         }
@@ -344,7 +344,15 @@ class SmartAPIClient:
         
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.get(url, headers=self._get_auth_headers(), timeout=30.0)
+                # Get real IP addresses for this request
+                local_ip = self._get_local_ip()
+                public_ip = await self._get_public_ip()
+                
+                headers = self._get_auth_headers()
+                headers["X-ClientLocalIP"] = local_ip
+                headers["X-ClientPublicIP"] = public_ip
+                
+                response = await client.get(url, headers=headers, timeout=30.0)
                 response.raise_for_status()
                 return response.json()
             except Exception as e:
@@ -516,7 +524,15 @@ class SmartAPIClient:
         
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.get(url, headers=self._get_auth_headers(), timeout=30.0)
+                # Get real IP addresses for this request
+                local_ip = self._get_local_ip()
+                public_ip = await self._get_public_ip()
+                
+                headers = self._get_auth_headers()
+                headers["X-ClientLocalIP"] = local_ip
+                headers["X-ClientPublicIP"] = public_ip
+                
+                response = await client.get(url, headers=headers, timeout=30.0)
                 response.raise_for_status()
                 return response.json()
             except Exception as e:
