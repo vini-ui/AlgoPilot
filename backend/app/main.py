@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, apps, strategies, orders, settings, profile
+from app.api import auth, apps, strategies, orders, settings, profile, positions
 from app.models.database import engine, Base
 
 # Create database tables
@@ -26,6 +26,7 @@ app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(apps.router, prefix="/api/apps", tags=["apps"])
 app.include_router(strategies.router, prefix="/api/strategies", tags=["strategies"])
 app.include_router(orders.router, prefix="/api/orders", tags=["orders"])
+app.include_router(positions.router, prefix="/api/positions", tags=["positions"])
 app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
 app.include_router(profile.router, prefix="/api/profile", tags=["profile"])
 

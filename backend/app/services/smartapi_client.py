@@ -4,6 +4,7 @@ SmartAPI Client - Handles Angel One SmartAPI authentication and API calls
 import httpx
 import json
 import socket
+import re
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 
@@ -414,15 +415,178 @@ class SmartAPIClient:
     
     async def get_positions(self) -> Dict[str, Any]:
         """Get current positions."""
-        url = f"{self.base_url}/rest/secure/angelbroking/portfolio/v1/getPosition"
+        print("-" * 80)
+        print("SMARTAPI CLIENT: get_positions() called")
+        
+        # Use apiconnect.angelone.in for positions endpoint if base_url is angelbroking.com
+        base_url_for_request = self.base_url
+        if self.base_url == "https://apiconnect.angelbroking.com":
+            base_url_for_request = "https://apiconnect.angelone.in"
+        
+        url = f"{base_url_for_request}/rest/secure/angelbroking/portfolio/v1/getPosition"
+        print(f"Base URL: {self.base_url}")
+        print(f"Request Base URL: {base_url_for_request}")
+        print(f"Full URL: {url}")
+        
+        # Check token before making request
+        if not self.access_token:
+            print("ERROR: No access token available")
+            return {
+                "success": False,
+                "error": "No access token available. Please login first."
+            }
+        
+        if not self.is_token_valid():
+            print("ERROR: Access token expired")
+            return {
+                "success": False,
+                "error": "Access token expired. Please refresh session."
+            }
+        
+        print(f"Access token valid: {self.is_token_valid()}")
+        print(f"Access token (first 20 chars): {self.access_token[:20]}...")
         
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.get(url, headers=self._get_auth_headers(), timeout=30.0)
-                response.raise_for_status()
-                return response.json()
+                # Get real IP addresses for this request
+                local_ip = self._get_local_ip()
+                public_ip = await self._get_public_ip()
+                print(f"Local IP: {local_ip}, Public IP: {public_ip}")
+                
+                headers = self._get_auth_headers()
+                headers["X-ClientLocalIP"] = local_ip
+                headers["X-ClientPublicIP"] = public_ip
+                
+                print(f"Request headers keys: {list(headers.keys())}")
+                print(f"Authorization header present: {'Authorization' in headers}")
+                print(f"X-PrivateKey present: {'X-PrivateKey' in headers}")
+                
+                print("Making GET request to SmartAPI...")
+                response = await client.get(url, headers=headers, timeout=30.0)
+                
+                # Log response for debugging
+                print(f"Response received - Status: {response.status_code}")
+                print(f"Response headers: {dict(response.headers)}")
+                print(f"Response content length: {len(response.content) if response.content else 0}")
+                print(f"Response text length: {len(response.text) if response.text else 0}")
+                
+                # Check HTTP status
+                if response.status_code != 200:
+                    # Check if response is HTML (indicates request was rejected by proxy/firewall)
+                    if response.text and response.text.strip().startswith('<html'):
+                        error_text = response.text[:500] if response.text else "No error message"
+                        print(f"Positions API: Request rejected (HTML response): {error_text}")
+                        # Extract support ID from HTML if present
+                        support_id_match = re.search(r'support ID is:\s*(\d+)', error_text, re.IGNORECASE)
+                        support_id = support_id_match.group(1) if support_id_match else "N/A"
+                        
+                        return {
+                            "success": False,
+                            "error": f"Request was rejected. Please check: 1) Your IP is whitelisted in SmartAPI dashboard, 2) Your API key is correct, 3) Your session is valid. Support ID: {support_id}",
+                            "status_code": response.status_code
+                        }
+                    
+                    try:
+                        error_data = response.json()
+                        error_msg = error_data.get("message", f"HTTP {response.status_code}")
+                        print(f"Positions API Error Response: {error_data}")
+                        return {
+                            "success": False,
+                            "error": error_msg,
+                            "status_code": response.status_code
+                        }
+                    except (ValueError, json.JSONDecodeError):
+                        error_text = response.text[:500] if response.text else "No error message"
+                        print(f"Positions API Error Text: {error_text}")
+                        return {
+                            "success": False,
+                            "error": f"HTTP {response.status_code}: {error_text}",
+                            "status_code": response.status_code
+                        }
+                
+                # Check if response has content
+                if not response.text or not response.text.strip():
+                    print("Positions API: Empty response received")
+                    return {
+                        "success": False,
+                        "error": "Empty response from API. Please check your session and try again.",
+                        "status_code": response.status_code
+                    }
+                
+                # Try to parse JSON
+                try:
+                    print("Attempting to parse JSON response...")
+                    result = response.json()
+                    print(f"JSON parsed successfully")
+                    print(f"Response type: {type(result)}")
+                    if isinstance(result, dict):
+                        print(f"Response keys: {list(result.keys())}")
+                        print(f"Response status: {result.get('status')}")
+                        print(f"Response message: {result.get('message')}")
+                        print(f"Response errorcode: {result.get('errorcode')}")
+                        data = result.get('data')
+                        if data is not None:
+                            print(f"Response data type: {type(data)}")
+                            if isinstance(data, list):
+                                print(f"Response data length: {len(data)}")
+                            else:
+                                print(f"Response data: {str(data)[:200]}")
+                        else:
+                            print("Response data is None")
+                    else:
+                        print(f"Response is not a dict: {result}")
+                except (ValueError, json.JSONDecodeError) as json_err:
+                    response_text = response.text[:1000] if response.text else "(empty)"
+                    print(f"JSON PARSING ERROR: {type(json_err).__name__}: {str(json_err)}")
+                    print(f"Response text (first 1000 chars): {response_text}")
+                    print(f"Response status code: {response.status_code}")
+                    print(f"Response headers: {dict(response.headers)}")
+                    return {
+                        "success": False,
+                        "error": f"Invalid JSON response: {str(json_err)}. Response: {response_text[:200]}",
+                        "status_code": response.status_code
+                    }
+                
+                if result.get("status") and result.get("data") is not None:
+                    data = result.get("data", [])
+                    print(f"SUCCESS: Returning {len(data) if isinstance(data, list) else 'non-list'} positions")
+                    print("-" * 80)
+                    return {
+                        "success": True,
+                        "data": data
+                    }
+                else:
+                    error_msg = result.get("message", "Failed to fetch positions")
+                    errorcode = result.get("errorcode", "")
+                    print(f"ERROR: API returned failure")
+                    print(f"  Status: {result.get('status')}")
+                    print(f"  Message: {error_msg}")
+                    print(f"  Error code: {errorcode}")
+                    print(f"  Full response: {result}")
+                    print("-" * 80)
+                    return {
+                        "success": False,
+                        "error": error_msg,
+                        "errorcode": errorcode
+                    }
+            except httpx.HTTPStatusError as e:
+                try:
+                    error_data = e.response.json()
+                    error_msg = error_data.get("message", f"HTTP {e.response.status_code}")
+                except (ValueError, json.JSONDecodeError):
+                    error_msg = f"HTTP {e.response.status_code}: {e.response.text[:200] if e.response.text else 'No error message'}"
+                print(f"Positions API HTTPStatusError: {error_msg}")
+                return {"success": False, "error": error_msg, "status_code": e.response.status_code}
+            except httpx.RequestError as e:
+                error_msg = f"Request failed: {str(e)}"
+                print(f"Positions API RequestError: {error_msg}")
+                return {"success": False, "error": error_msg}
             except Exception as e:
-                return {"success": False, "error": str(e)}
+                error_msg = f"Unexpected error: {str(e)}"
+                print(f"Positions API Exception: {error_msg}")
+                import traceback
+                traceback.print_exc()
+                return {"success": False, "error": error_msg}
     
     async def get_holdings(self) -> Dict[str, Any]:
         """Get holdings."""
@@ -442,9 +606,117 @@ class SmartAPIClient:
         
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.get(url, headers=self._get_auth_headers(), timeout=30.0)
-                response.raise_for_status()
-                return response.json()
+                # Get real IP addresses for this request
+                local_ip = self._get_local_ip()
+                public_ip = await self._get_public_ip()
+                
+                headers = self._get_auth_headers()
+                headers["X-ClientLocalIP"] = local_ip
+                headers["X-ClientPublicIP"] = public_ip
+                
+                response = await client.get(url, headers=headers, timeout=30.0)
+                
+                # Check HTTP status
+                if response.status_code != 200:
+                    try:
+                        error_data = response.json()
+                        error_msg = error_data.get("message", f"HTTP {response.status_code}")
+                        return {
+                            "success": False,
+                            "error": error_msg,
+                            "status_code": response.status_code
+                        }
+                    except (ValueError, json.JSONDecodeError):
+                        error_text = response.text[:500] if response.text else "No error message"
+                        return {
+                            "success": False,
+                            "error": f"HTTP {response.status_code}: {error_text}",
+                            "status_code": response.status_code
+                        }
+                
+                result = response.json()
+                
+                if result.get("status") and result.get("data"):
+                    return {
+                        "success": True,
+                        "data": result.get("data", [])
+                    }
+                else:
+                    error_msg = result.get("message", "Failed to fetch order book")
+                    return {
+                        "success": False,
+                        "error": error_msg,
+                        "errorcode": result.get("errorcode", "")
+                    }
+            except httpx.HTTPStatusError as e:
+                try:
+                    error_data = e.response.json()
+                    error_msg = error_data.get("message", f"HTTP {e.response.status_code}")
+                except (ValueError, json.JSONDecodeError):
+                    error_msg = f"HTTP {e.response.status_code}: {e.response.text[:200] if e.response.text else 'No error message'}"
+                return {"success": False, "error": error_msg, "status_code": e.response.status_code}
+            except httpx.RequestError as e:
+                return {"success": False, "error": f"Request failed: {str(e)}"}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+    
+    async def get_order_details(self, order_id: str) -> Dict[str, Any]:
+        """Get order details by order ID."""
+        url = f"{self.base_url}/rest/secure/angelbroking/order/v1/details/{order_id}"
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                # Get real IP addresses for this request
+                local_ip = self._get_local_ip()
+                public_ip = await self._get_public_ip()
+                
+                headers = self._get_auth_headers()
+                headers["X-ClientLocalIP"] = local_ip
+                headers["X-ClientPublicIP"] = public_ip
+                
+                response = await client.get(url, headers=headers, timeout=30.0)
+                
+                # Check HTTP status
+                if response.status_code != 200:
+                    try:
+                        error_data = response.json()
+                        error_msg = error_data.get("message", f"HTTP {response.status_code}")
+                        return {
+                            "success": False,
+                            "error": error_msg,
+                            "status_code": response.status_code
+                        }
+                    except (ValueError, json.JSONDecodeError):
+                        error_text = response.text[:500] if response.text else "No error message"
+                        return {
+                            "success": False,
+                            "error": f"HTTP {response.status_code}: {error_text}",
+                            "status_code": response.status_code
+                        }
+                
+                result = response.json()
+                
+                if result.get("status") and result.get("data"):
+                    return {
+                        "success": True,
+                        "data": result.get("data")
+                    }
+                else:
+                    error_msg = result.get("message", "Failed to fetch order details")
+                    return {
+                        "success": False,
+                        "error": error_msg,
+                        "errorcode": result.get("errorcode", "")
+                    }
+            except httpx.HTTPStatusError as e:
+                try:
+                    error_data = e.response.json()
+                    error_msg = error_data.get("message", f"HTTP {e.response.status_code}")
+                except (ValueError, json.JSONDecodeError):
+                    error_msg = f"HTTP {e.response.status_code}: {e.response.text[:200] if e.response.text else 'No error message'}"
+                return {"success": False, "error": error_msg, "status_code": e.response.status_code}
+            except httpx.RequestError as e:
+                return {"success": False, "error": f"Request failed: {str(e)}"}
             except Exception as e:
                 return {"success": False, "error": str(e)}
     
@@ -648,4 +920,141 @@ class SmartAPIClient:
                 return response.json()
             except Exception as e:
                 return {"success": False, "error": str(e)}
+    
+    async def get_top_gainers_losers(
+        self,
+        datatype: str = "PercPriceGainers",
+        expirytype: str = "NEAR",
+        limit: int = 20
+    ) -> Dict[str, Any]:
+        """
+        Get top gainers and losers using SmartAPI gainersLosers endpoint.
+        
+        Args:
+            datatype: Type of data (PercPriceGainers, PercPriceLosers, PercOIGainers, PercOILosers)
+            expirytype: Expiry type (NEAR, NEXT, FAR)
+            limit: Number of results to return (default: 20)
+            
+        Returns:
+            Dict with success status and data list
+        """
+        # The gainersLosers endpoint might only be available on angelone.in domain
+        # Try to use angelone.in if the base_url is angelbroking.com
+        if "angelbroking.com" in self.base_url:
+            # Use angelone.in for this specific endpoint
+            url = f"https://apiconnect.angelone.in/rest/secure/angelbroking/marketData/v1/gainersLosers"
+        else:
+            url = f"{self.base_url}/rest/secure/angelbroking/marketData/v1/gainersLosers"
+        
+        payload = {
+            "datatype": datatype,
+            "expirytype": expirytype
+        }
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                # Get real IP addresses for this request
+                local_ip = self._get_local_ip()
+                public_ip = await self._get_public_ip()
+                
+                # Check if we have a valid token
+                if not self.access_token:
+                    return {
+                        "success": False,
+                        "error": "No access token available. Please login first."
+                    }
+                
+                if not self.is_token_valid():
+                    return {
+                        "success": False,
+                        "error": "Access token expired. Please refresh session."
+                    }
+                
+                headers = self._get_auth_headers()
+                headers["X-ClientLocalIP"] = local_ip
+                headers["X-ClientPublicIP"] = public_ip
+                
+                response = await client.post(
+                    url,
+                    json=payload,
+                    headers=headers,
+                    timeout=30.0
+                )
+                
+                # Log response for debugging
+                print(f"GainersLosers API Request URL: {url}")
+                print(f"GainersLosers API Request Payload: {payload}")
+                print(f"GainersLosers API Response Status: {response.status_code}")
+                
+                # Check HTTP status
+                if response.status_code != 200:
+                    try:
+                        error_data = response.json()
+                        error_msg = error_data.get("message", f"HTTP {response.status_code}")
+                        print(f"GainersLosers API Error Response: {error_data}")
+                        return {
+                            "success": False,
+                            "error": error_msg,
+                            "status_code": response.status_code
+                        }
+                    except (ValueError, json.JSONDecodeError):
+                        error_text = response.text[:500] if response.text else "No error message"
+                        print(f"GainersLosers API Error Text: {error_text}")
+                        return {
+                            "success": False,
+                            "error": f"HTTP {response.status_code}: {error_text}",
+                            "status_code": response.status_code
+                        }
+                
+                result = response.json()
+                print(f"GainersLosers API Response Data: {result}")
+                
+                if result.get("status") and result.get("data"):
+                    # Limit results
+                    data_list = result.get("data", [])[:limit]
+                    
+                    # Transform data to match expected format
+                    transformed_data = []
+                    for item in data_list:
+                        transformed_data.append({
+                            "symbol": item.get("tradingSymbol", "N/A"),
+                            "symboltoken": item.get("symbolToken", ""),
+                            "percentChange": round(item.get("percentChange", 0), 2),
+                            "opnInterest": item.get("opnInterest", 0),
+                            "netChangeOpnInterest": item.get("netChangeOpnInterest", 0)
+                        })
+                    
+                    return {
+                        "success": True,
+                        "data": transformed_data,
+                        "datatype": datatype,
+                        "expirytype": expirytype,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                else:
+                    error_msg = result.get("message", "Failed to fetch gainers/losers")
+                    print(f"GainersLosers API Error: {error_msg}, Full response: {result}")
+                    return {
+                        "success": False,
+                        "error": error_msg,
+                        "errorcode": result.get("errorcode", "")
+                    }
+            except httpx.HTTPStatusError as e:
+                try:
+                    error_data = e.response.json()
+                    error_msg = error_data.get("message", f"HTTP {e.response.status_code}")
+                except (ValueError, json.JSONDecodeError):
+                    error_msg = f"HTTP {e.response.status_code}: {e.response.text[:200] if e.response.text else 'No error message'}"
+                print(f"GainersLosers API HTTPStatusError: {error_msg}")
+                return {"success": False, "error": error_msg, "status_code": e.response.status_code}
+            except httpx.RequestError as e:
+                error_msg = f"Request failed: {str(e)}"
+                print(f"GainersLosers API RequestError: {error_msg}")
+                return {"success": False, "error": error_msg}
+            except Exception as e:
+                error_msg = f"Unexpected error: {str(e)}"
+                print(f"GainersLosers API Exception: {error_msg}")
+                import traceback
+                traceback.print_exc()
+                return {"success": False, "error": error_msg}
 

@@ -4,20 +4,158 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <h1 class="text-3xl font-display font-bold text-gray-900 dark:text-white">Dashboard</h1>
         
-        <!-- Funds Display -->
-        <div v-if="fundsData && fundsData.status && fundsData.data" class="flex items-center gap-4">
-          <div class="text-right">
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Available Funds</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">
-              ₹{{ formatCurrency(fundsData.data.availablecash || fundsData.data.net || 0) }}
-            </p>
+        <div class="flex items-center gap-4">
+          <!-- Funds Display -->
+          <div v-if="fundsData && fundsData.status && fundsData.data" class="flex items-center gap-4">
+            <div class="text-right">
+              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Available Funds</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                ₹{{ formatCurrency(fundsData.data.availablecash || fundsData.data.net || 0) }}
+              </p>
+            </div>
+            <button
+              @click="showFundsModal = true"
+              class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 rounded-md transition-colors"
+            >
+              View Details
+            </button>
           </div>
-          <button
-            @click="showFundsModal = true"
-            class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 rounded-md transition-colors"
-          >
-            View Details
-          </button>
+          
+          <!-- Hamburger Menu Button -->
+          <div class="relative profile-menu-container">
+            <button
+              @click.stop="showProfileMenu = !showProfileMenu"
+              class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+              aria-label="User menu"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+            
+            <!-- Profile Dropdown Menu -->
+            <div
+              v-if="showProfileMenu"
+              @click.stop
+              class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-800 rounded-lg shadow-lg border border-gray-200 dark:border-dark-700 z-50 max-h-[calc(100vh-8rem)] overflow-y-auto"
+            >
+              <!-- User Profile Content -->
+              <div v-if="userProfile && userProfile.status" class="p-4">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-dark-700">
+                  <h3 class="text-lg font-display font-semibold text-gray-900 dark:text-white">User Profile</h3>
+                  <button
+                    @click="showProfileMenu = false"
+                    class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div v-if="userProfile.data" class="space-y-4">
+                  <div class="grid grid-cols-1 gap-3">
+                    <div class="flex items-start gap-2">
+                      <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Client Code</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ userProfile.data.clientcode || 'N/A' }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                      <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Name</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ userProfile.data.name || 'N/A' }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                      <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                      </svg>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Email</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ userProfile.data.email || 'Not provided' }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                      <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                      </svg>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Mobile</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ userProfile.data.mobileno || 'Not provided' }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                      <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                      </svg>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Broker ID</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ userProfile.data.brokerid || 'N/A' }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                      <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                      </svg>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Last Login</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ formatDate(userProfile.data.lastlogintime) }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Exchanges and Products -->
+                  <div class="pt-4 border-t border-gray-200 dark:border-dark-700 space-y-3">
+                    <div>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">Exchanges</p>
+                      <div class="flex flex-wrap gap-2">
+                        <span
+                          v-for="exchange in parseJsonArray(userProfile.data.exchanges)"
+                          :key="exchange"
+                          class="px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200"
+                        >
+                          {{ formatExchange(exchange) }}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">Products</p>
+                      <div class="flex flex-wrap gap-2">
+                        <span
+                          v-for="product in parseJsonArray(userProfile.data.products)"
+                          :key="product"
+                          class="px-2 py-1 text-xs font-medium rounded-full bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200"
+                        >
+                          {{ product }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div v-else class="text-center py-4">
+                  <p class="text-sm text-gray-500 dark:text-gray-400">No profile data available</p>
+                </div>
+              </div>
+              
+              <div v-else class="p-4 text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">User profile not loaded</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -124,103 +262,12 @@
         </div>
       </div>
       
-      <!-- User Profile Section -->
-      <div v-if="userProfile && userProfile.status" class="card mb-6">
-        <h2 class="text-xl font-display font-semibold text-gray-900 dark:text-white mb-4">User Profile</h2>
-        <div v-if="userProfile.data" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Client Code</p>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ userProfile.data.clientcode || 'N/A' }}</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Name</p>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ userProfile.data.name || 'N/A' }}</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-            </svg>
-            <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Email</p>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ userProfile.data.email || 'Not provided' }}</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-            </svg>
-            <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Mobile</p>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ userProfile.data.mobileno || 'Not provided' }}</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-            <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Broker ID</p>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ userProfile.data.brokerid || 'N/A' }}</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Last Login</p>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatDate(userProfile.data.lastlogintime) }}</p>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Exchanges and Products -->
-        <div v-if="userProfile.data" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">Exchanges</p>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="exchange in parseJsonArray(userProfile.data.exchanges)"
-                :key="exchange"
-                class="px-3 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200"
-              >
-                {{ formatExchange(exchange) }}
-              </span>
-            </div>
-          </div>
-          
-          <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">Products</p>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="product in parseJsonArray(userProfile.data.products)"
-                :key="product"
-                class="px-3 py-1 text-xs font-medium rounded-full bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200"
-              >
-                {{ product }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Top Gainers & Losers Component -->
+      <TopGainersLosers v-if="activeApp" />
       
-      <div class="bg-white dark:bg-dark-800 rounded-xl shadow-md p-8 text-center">
-        <p class="text-gray-500 dark:text-gray-400 text-lg">Dashboard content coming soon...</p>
+      <!-- Placeholder for additional dashboard content -->
+      <div v-if="activeApp" class="bg-white dark:bg-dark-800 rounded-xl shadow-md p-8 text-center mt-6">
+        <p class="text-gray-500 dark:text-gray-400 text-lg">More dashboard content coming soon...</p>
         <p class="text-gray-400 dark:text-gray-500 mt-2">This will show overall app statistics, active strategies, and recent activity.</p>
       </div>
     </div>
@@ -369,14 +416,18 @@
 </template>
 
 <script>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useAppStore } from '../store/app'
 import apiClient from '../api/client'
 import { showError } from '../utils/toast'
+import TopGainersLosers from '../components/TopGainersLosers.vue'
 import { getSession } from '../utils/session'
 
 export default {
   name: 'DashboardPage',
+  components: {
+    TopGainersLosers
+  },
   setup() {
     const appStore = useAppStore()
     const userProfile = ref(null)
@@ -384,6 +435,7 @@ export default {
     const fundsData = ref(null)
     const loadingFunds = ref(false)
     const showFundsModal = ref(false)
+    const showProfileMenu = ref(false)
     
     const activeApp = computed(() => appStore.activeApp)
     
@@ -513,6 +565,13 @@ export default {
       }
     }
     
+    // Handle click outside to close profile menu
+    const handleClickOutside = (event) => {
+      if (showProfileMenu.value && !event.target.closest('.profile-menu-container')) {
+        showProfileMenu.value = false
+      }
+    }
+
     onMounted(async () => {
       // Load apps on mount to ensure we have fresh data
       await loadApps()
@@ -524,6 +583,14 @@ export default {
           loadFunds()
         ])
       }
+      
+      // Add click outside listener
+      document.addEventListener('click', handleClickOutside)
+    })
+    
+    onUnmounted(() => {
+      // Remove click outside listener
+      document.removeEventListener('click', handleClickOutside)
     })
     
     return {
@@ -533,6 +600,7 @@ export default {
       fundsData,
       loadingFunds,
       showFundsModal,
+      showProfileMenu,
       formatDate,
       parseJsonArray,
       formatExchange,

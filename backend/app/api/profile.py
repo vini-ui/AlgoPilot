@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 from pydantic import BaseModel
+from datetime import datetime
 from app.models import get_db, User, App, AppSecret
 from app.api.auth import get_current_user
 from app.services.session_manager import SessionManager
@@ -170,3 +171,116 @@ async def get_funds(
         )
     
     return funds_result
+
+
+@router.get("/market/gainers-losers")
+async def get_top_gainers_losers(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    datatype: str = "PercPriceGainers",
+    expirytype: str = "NEAR",
+    limit: int = 20
+):
+    """Get top gainers and losers for the day."""
+    # Get session manager and check for active session
+    session_manager = SessionManager.get_instance()
+    
+    # Check if there's an active session in SessionManager
+    active_app_id = session_manager.get_active_app_id()
+    
+    # If no active session, check if user has an active app set (for backward compatibility)
+    if not active_app_id:
+        active_app_id = getattr(current_user, "_active_app_id", None)
+    
+    # If still no active app, check if user has apps and try to use default
+    if not active_app_id:
+        user_apps = db.query(App).filter(App.user_id == current_user.id).all()
+        if user_apps:
+            # Try to find default app
+            default_app = next((app for app in user_apps if app.is_default), None)
+            if default_app:
+                active_app_id = default_app.id
+            else:
+                # Use first app if no default
+                active_app_id = user_apps[0].id
+    
+    if not active_app_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No active app selected. Please switch to an app first."
+        )
+    
+    # Get SmartAPI client from session manager
+    smartapi_client = session_manager.get_smartapi_client()
+    
+    if not smartapi_client:
+        raise HTTPException(
+            status_code=400,
+            detail="No active session. Please switch to an app first."
+        )
+    
+    # Fetch both gainers and losers
+    try:
+        gainers_result = await smartapi_client.get_top_gainers_losers(
+            datatype="PercPriceGainers",
+            expirytype=expirytype,
+            limit=limit
+        )
+        
+        losers_result = await smartapi_client.get_top_gainers_losers(
+            datatype="PercPriceLosers",
+            expirytype=expirytype,
+            limit=limit
+        )
+        
+        # Log results for debugging
+        print(f"Gainers result: {gainers_result}")
+        print(f"Losers result: {losers_result}")
+        
+        # Check if both requests succeeded
+        if not gainers_result.get("success"):
+            error_msg = gainers_result.get("error", "Failed to fetch top gainers")
+            errorcode = gainers_result.get("errorcode", "")
+            print(f"Failed to fetch gainers: {error_msg} (errorcode: {errorcode})")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to fetch top gainers: {error_msg}"
+            )
+        
+        if not losers_result.get("success"):
+            error_msg = losers_result.get("error", "Failed to fetch top losers")
+            errorcode = losers_result.get("errorcode", "")
+            print(f"Failed to fetch losers: {error_msg} (errorcode: {errorcode})")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to fetch top losers: {error_msg}"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error in get_top_gainers_losers endpoint: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
+    
+    # Transform gainers data to include LTP (we'll need to fetch quotes for LTP)
+    gainers = gainers_result.get("data", [])
+    losers = losers_result.get("data", [])
+    
+    # For now, return the data as-is. If LTP is needed, we can fetch quotes separately
+    # The frontend can display percentChange which is already available
+    
+    return {
+        "status": True,
+        "message": "SUCCESS",
+        "errorcode": "",
+        "data": {
+            "gainers": gainers,
+            "losers": losers,
+            "expirytype": expirytype,
+            "timestamp": datetime.now().isoformat()
+        }
+    }
